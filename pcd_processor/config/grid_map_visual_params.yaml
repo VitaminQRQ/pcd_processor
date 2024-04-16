@@ -1,0 +1,7 @@
+grid_map_visualization:
+  grid_map_topic: /pcd_processor/grid_map_filtered_from_elevation
+  grid_map_visualizations:
+    - name: elevation_points
+      type: point_cloud
+      params:
+        layer: elevation

@@ -1,0 +1,14 @@
+<launch>
+    <!-- Run the pcd_processor node -->
+    <node name="pcd_processor" pkg="pcd_processor" type="pcd_processor_node" output="screen"/>
+
+    <!-- Load grid_map_filters configuration -->
+    <rosparam command="load" file="$(find pcd_processor)/config/grid_map_filters_params.yaml" />
+    <rosparam command="load" file="$(find pcd_processor)/config/grid_map_visual_params.yaml" />
+
+    <!-- Run the grid_map visualization node -->
+    <node pkg="grid_map_visualization" type="grid_map_visualization" name="grid_map_visualization" output="screen" />
+
+    <!-- Run rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find pcd_processor)/rviz/grid_map_visualization.rviz"/>
+</launch>

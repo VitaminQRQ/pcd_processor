@@ -1,0 +1,75 @@
+grid_map_filters:
+  # 填补地图上的空洞，插值后的图层名为 elevation_inpainted
+  - name: inpaint
+    type: gridMapCv/InpaintFilter
+    params:
+      input_layer: elevation
+      output_layer: elevation_inpainted
+      radius: 0.2
+
+  # 根据插值后的高程图拟合平滑的曲面
+  - name: mean_in_radius
+    type: gridMapFilters/MeanInRadiusFilter
+    params:
+      input_layer: elevation_inpainted
+      output_layer: elevation_smooth
+      radius: 1
+
+  # 计算法向量，并将 X Y Z 轴的法向量
+  # 分别存储于 normal_vectors_x, normal_vectors_y, normal_vectors_z 图层中
+  - name: surface_normals
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      algorithm: area
+      parallelization_enabled: false
+      thread_number: 6
+      input_layer: elevation_inpainted
+      output_layers_prefix: normal_vectors_
+      radius: 1
+      normal_vector_positive_axis: z
+
+  # 创建一个用于可视化法向量的图层 normal_color
+  - name: normal_color_map
+    type: gridMapFilters/NormalColorMapFilter
+    params:
+      input_layers_prefix: normal_vectors_
+      output_layer: normal_color
+
+  # 根据 z 轴法向量计算坡度，输入法向量层 normal_vectors_z，输出坡度层 slope 
+  - name: slope
+    type: gridMapFilters/MathExpressionFilter
+    params:
+      output_layer: slope
+      expression: acos(normal_vectors_z)
+
+  # # 根据平滑前后的高程图计算路面粗糙度
+  # - name: roughness
+  #   type: gridMapFilters/MathExpressionFilter
+  #   params:
+  #     output_layer: roughness
+  #     expression: abs(elevation_inpainted - elevation_smooth)
+
+  # # 根据粗糙度和坡度计算路面通行度
+  # - name: traversability
+  #   type: gridMapFilters/MathExpressionFilter
+  #   params:
+  #     output_layer: traversability
+  #     expression: 0.5 * (1.0 - (slope / 0.6)) + 0.5 * (1.0 - (roughness / 0.1))
+
+  # # 设置通行度下界
+  # - name: traversability_lower_threshold
+  #   type: gridMapFilters/ThresholdFilter
+  #   params:
+  #     condition_layer: traversability
+  #     output_layer: traversability
+  #     lower_threshold: 0.0
+  #     set_to: 0.0
+
+  # # 设置通行度上界
+  # - name: traversability_upper_threshold
+  #   type: gridMapFilters/ThresholdFilter
+  #   params:
+  #     condition_layer: traversability
+  #     output_layer: traversability
+  #     upper_threshold: 1.0
+  #     set_to: 1.0 # Other uses: .nan, .inf
